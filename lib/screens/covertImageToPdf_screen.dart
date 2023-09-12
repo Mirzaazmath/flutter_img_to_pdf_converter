@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
+import '../components/name_dailog.dart';
 import 'image_preview_screeen.dart';
 
 class ConvertImageToPDFScreen extends StatefulWidget {
@@ -32,10 +33,22 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
         elevation: 1,
         actions: [
           IconButton(
-              onPressed: () {
-                createPDF();
-                savePDF();
+              onPressed: () async{
+
+
+             final name = await  showDialog(context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context){
+                      return CustomNameDialogBox();
+                    }
+                );
+
+             print(name);
+               // CustomNameDialogBox
+                // createPDF();
+                // savePDF();
               },
+
               icon: const Icon(Icons.picture_as_pdf))
         ],
       ),

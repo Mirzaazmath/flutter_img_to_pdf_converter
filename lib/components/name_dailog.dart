@@ -5,17 +5,27 @@ import 'package:flutter/cupertino.dart';
 
 
 // CUSTOM DAILOG CLASS
-class CustomDialogBox extends StatefulWidget {
+class CustomNameDialogBox extends StatefulWidget {
 
 
 
-  const CustomDialogBox();
+  const CustomNameDialogBox();
 
   @override
   _CustomDialogBoxState createState() => _CustomDialogBoxState();
 }
 
-class _CustomDialogBoxState extends State<CustomDialogBox> {
+class _CustomDialogBoxState extends State<CustomNameDialogBox> {
+  TextEditingController _nameController=TextEditingController();
+
+
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _nameController.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -50,25 +60,61 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text("hello",style:  TextStyle(fontSize: 22,fontWeight: FontWeight.w600,color:Colors.green,),),
+             const  Text("Enter Name",style:  TextStyle(fontSize: 22,fontWeight: FontWeight.w600,color:Colors.blue,),),
               const   SizedBox(height: 15,),
-              Text("dcsdc",style:  TextStyle(fontSize: 14,color:Colors.green,),textAlign: TextAlign.center,),
+          Container(
+            height: 45,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            width: double.infinity,
+
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.grey.shade300,
+                      offset:const  Offset(2,2),
+                      blurRadius: 2),
+                  BoxShadow(
+                      color: Colors.grey.shade300,
+                      offset: const Offset(-2,-2),
+                      blurRadius: 2)]
+            ),
+
+
+            child: TextFormField(
+
+              controller: _nameController,
+              maxLines: 1,
+              decoration:const  InputDecoration(
+                  hintText: "Enter File Name",
+                  border: InputBorder.none
+              ),
+            ),
+          ),
               const SizedBox(height: 22,),
               Align(
                 alignment: Alignment.bottomRight,
                 child:GestureDetector(
                   onTap: (){
-                    Navigator.of(context).pop();
+                    //Navigator.of(context).pop();
+                    Navigator.pop(context, _nameController.text);
                   },
                   child: Container(
                       height: 40,
                       width: 150,
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          color: Colors.deepPurpleAccent
+                          gradient:const  LinearGradient(
+                              colors:[
+                                Color(0xff2876F9),
+                                Colors.cyan,
+
+                              ]
+                          )
                       ),
                       alignment: Alignment.center,
-                      child: Text("efvef",style:const  TextStyle(fontSize: 18,fontWeight: FontWeight.bold),)),
+                      child:const Text("Save",style:  TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.white),)),
                 ),
 
               )
@@ -82,8 +128,8 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
             backgroundColor: Colors.transparent,
             radius: Constants.avatarRadius,
             child: CircleAvatar(
-              backgroundColor:Colors.green,
-              radius: 50,child: Icon( Icons.check_circle_outline_outlined,size: 60,color: Colors.white,),
+              backgroundColor:Colors.blue,
+              radius: 50,child: Icon( Icons.note_add_outlined,size: 50,color: Colors.white,),
             ),
 
           ),

@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_img_to_pdf_converter/components/loading_dailog.dart';
+import 'package:flutter_img_to_pdf_converter/components/name_dailog.dart';
+import 'package:flutter_img_to_pdf_converter/components/toast.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,23 +28,11 @@ class ConvertImageToPDFScreen extends StatefulWidget {
 class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
   List<File>? images = [];
   final pdf = pw.Document();
-  //String fileName="";
-  // TextEditingController _nameController=TextEditingController();
-  // bool isload=false;
-
-
-  //
-  // @override
-  // void dispose() {
-  //   // TODO: implement dispose
-  //   super.dispose();
-  //   _nameController.dispose();
-  // }
-
+  final toast = AppToast();
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SavePDfBloc,PDFStates>(
-      builder: (context,state) {
+    return BlocConsumer<SavePDfBloc, PDFStates>(
+      builder: (context, state) {
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
@@ -51,11 +42,9 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
             elevation: 1,
             actions: [
               IconButton(
-                  onPressed: (){
-                    _showResult();
-                 //showNameDialog(context);
-                },
-
+                  onPressed: () {
+                    context.read<SavePDfBloc>().enterName();
+                  },
                   icon: const Icon(Icons.picture_as_pdf))
             ],
           ),
@@ -120,7 +109,8 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
                                 },
                                 child: CircleAvatar(
                                   radius: 16,
-                                  backgroundColor: Colors.white.withOpacity(0.6),
+                                  backgroundColor:
+                                      Colors.white.withOpacity(0.6),
                                   child: Icon(
                                     Icons.close,
                                     color: Colors.red,
@@ -136,154 +126,32 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
           ),
         );
       },
-      listener: (BuildContext context, state) {
+      listener: (context, state) {
+        if (state is EnterNameState) {
+          _showNameDailog();
+        } else if (state is ProcessingState) {
+          // _showLoaderDailog();
+          createPDF(state.name);
+          // await savePDF(state.name);
+        } else if (state is PDfSavedState) {
+          Navigator.pop(context);
+          toast.showToast("Hello World");
 
-    },
+          // do Something
+        }
+      },
     );
   }
-  _showResult()async{
 
-
-
-    showDialog(context: context,
+  _showNameDailog() async {
+    showDialog(
+        context: context,
         barrierDismissible: false,
-        builder: (BuildContext context){
-          return CustomLoadingDialogBox();}
-    );
-
-  }
-  // void showNameDialog(context) {
-  //   showDialog<String>(
-  //     context: context,
-  //     builder: (BuildContext context) => Dialog(
-  //       backgroundColor: Colors.transparent,
-  //       child: StatefulBuilder(
-  //           builder: (BuildContext context, StateSetter setState) {
-  //             return Stack(
-  //               children: <Widget>[
-  //                 Container(
-  //                   padding: const  EdgeInsets.only(left: Constants.padding,top: Constants.avatarRadius
-  //                       + Constants.padding, right: Constants.padding,bottom: Constants.padding
-  //                   ),
-  //                   margin:const  EdgeInsets.only(top: Constants.avatarRadius),
-  //                   decoration: BoxDecoration(
-  //                       shape: BoxShape.rectangle,
-  //                       color: Colors.white,
-  //                       borderRadius: BorderRadius.circular(Constants.padding),
-  //                       boxShadow:const  [
-  //                         BoxShadow(color: Colors.black,offset: Offset(0,10),
-  //                             blurRadius: 10
-  //                         ),
-  //                       ]
-  //                   ),
-  //                   child: Column(
-  //                     mainAxisSize: MainAxisSize.min,
-  //                     children: <Widget>[
-  //                       Text("Enter Name",style:  TextStyle(fontSize: 22,fontWeight: FontWeight.w600,color:Colors.blue,),),
-  //                       const   SizedBox(height: 15,),
-  //                       Container(
-  //                         height: 45,
-  //                         padding: const EdgeInsets.symmetric(horizontal: 10),
-  //                         width: double.infinity,
-  //
-  //                         decoration: BoxDecoration(
-  //                             borderRadius: BorderRadius.circular(10),
-  //                             color: Colors.white,
-  //                             boxShadow: [
-  //                               BoxShadow(
-  //                                   color: Colors.grey.shade300,
-  //                                   offset:const  Offset(2,2),
-  //                                   blurRadius: 2),
-  //                               BoxShadow(
-  //                                   color: Colors.grey.shade300,
-  //                                   offset: const Offset(-2,-2),
-  //                                   blurRadius: 2)]
-  //                         ),
-  //
-  //
-  //                         child: TextFormField(
-  //
-  //                           controller: _nameController,
-  //                           maxLines: 1,
-  //                           decoration:const  InputDecoration(
-  //                               hintText: "Enter File Name",
-  //                               border: InputBorder.none
-  //                           ),
-  //                         ),
-  //                       ),
-  //                       const SizedBox(height: 22,),
-  //                       Align(
-  //                         alignment: Alignment.bottomRight,
-  //                         child:GestureDetector(
-  //                           onTap: (){
-  //
-  //                              // fileName=_nameController.text;
-  //
-  //
-  //
-  //
-  //                             covertingProcess(_nameController.text);
-  //
-  //                           },
-  //                           child: Container(
-  //                               height: 40,
-  //                               width: 150,
-  //                               decoration: BoxDecoration(
-  //                                   borderRadius: BorderRadius.circular(20),
-  //                                   gradient:const  LinearGradient(
-  //                                       colors:[
-  //                                         Color(0xff2876F9),
-  //                                         Colors.cyan,
-  //
-  //                                       ]
-  //                                   )
-  //                               ),
-  //                               alignment: Alignment.center,
-  //                               child:const Text("Save",style:  TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.white),)),
-  //                         ),
-  //
-  //                       )
-  //                     ],
-  //                   ),
-  //                 ),
-  //                 Positioned(
-  //                   left: Constants.padding,
-  //                   right: Constants.padding,
-  //                   child: CircleAvatar(
-  //                     backgroundColor: Colors.transparent,
-  //                     radius: Constants.avatarRadius,
-  //                     child: CircleAvatar(
-  //                       backgroundColor:Colors.blue,
-  //                       radius: 50,child: Icon( Icons.note_add_outlined,size: 50,color: Colors.white,),
-  //                     ),
-  //
-  //                   ),
-  //                 ),
-  //               ],
-  //             );
-  //           }),
-  //     ),
-  //   );
-  // }
-
-
-
-  covertingProcess(String  name){
-
-
-
-    if(name==""){
-
-    }
-    else{
-      createPDF();
-      savePDF(name);
-      Navigator.of(context).pop();
-    }
-
+        builder: (BuildContext context) {
+          return const CustomNameDialogBox();
+        });
   }
 
-  ///
   void _removeImg(int index) {
     setState(() {
       images!.removeAt(index);
@@ -305,62 +173,71 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
   }
 
   ///
-  createPDF() async {
-    for (int i=0;i<images!.length;i++){
+  createPDF(String name) async {
+    for (int i = 0; i < images!.length; i++) {
       final image = pw.MemoryImage(images![i].readAsBytesSync());
       pdf.addPage(pw.Page(build: (pw.Context context) {
         return pw.Center(
           child: pw.Image(image),
         ); // Center
       }));
-
     }
-
+    await savePDF(name);
   }
 
   savePDF(String fileName) async {
     try {
-      if(Platform.isAndroid){
-      var path="/storage/emulated/0/Download";
-      final file = File("$path/$fileName.pdf");
-      debugPrint(file.toString());
-         await file.writeAsBytes(await pdf.save());
-      }else{
-
-        final directory  =  await  getApplicationDocumentsDirectory();
-      //  final directory = await getDownloadsDirectory();
+      if (Platform.isAndroid) {
+        var path = "/storage/emulated/0/Download";
+        final file = File("$path/$fileName.pdf");
+        debugPrint(file.toString());
+        //await savePdfToFile(pdf, file);
+        await IsolateFunc(pdf,file);
+        //await file.writeAsBytes(await pdf.save());
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        //  final directory = await getDownloadsDirectory();
         final downloadPath = directory.path;
 
 // Create the Downloads directory if it doesn't exist
         if (!await Directory(downloadPath).exists()) {
           await Directory(downloadPath).create(recursive: true);
         }
-      final file = File("$downloadPath/$fileName.pdf");
+        final file = File("$downloadPath/$fileName.pdf");
         debugPrint(file.toString());
-        await file.writeAsBytes(await pdf.save());
-
-
+        await IsolateFunc(pdf,file);
+       // await savePdfToFile(pdf, file);
+        //await file.writeAsBytes(await pdf.save());
       }
-
-      showToast();
+      context.read<SavePDfBloc>().savePDF();
     } catch (e) {
       debugPrint("error while saving the pfd == $e");
     }
   }
 
-  showToast() {
-    Fluttertoast.showToast(
-        msg: "This is Center Short Toast",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.grey,
-        textColor: Colors.black,
-        fontSize: 16.0);
+
+}
+
+IsolateFunc(pdf,file)async{
+  final ReceivePort receivePort=ReceivePort();
+  try{
+    await Isolate.spawn(savePdfToFile,[receivePort.sendPort,pdf, file] );
+  }on Object{
+    debugPrint("Save File Isolate Failed");
+    receivePort.close();
   }
+final res = await receivePort.first;
+  debugPrint("value back from Isolate === $res");
 }
-class Constants{
-  Constants._();
-  static const double padding =20;
-  static const double avatarRadius =45;
+
+
+
+savePdfToFile(List<dynamic> parameter) async{
+  SendPort  sendPort= parameter[0];
+  final pdfBytes = await parameter[1].save();
+  await parameter[2].writeAsBytes(pdfBytes);
+  Isolate.exit(sendPort,true);
+
 }
+
+

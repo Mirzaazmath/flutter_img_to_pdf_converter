@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_img_to_pdf_converter/bloc/pdf_save_bloc/save_bloc.dart';
 import 'package:flutter_img_to_pdf_converter/screens/home_screen.dart';
 void main(){
   runApp(MyApp());
@@ -8,10 +10,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const  MaterialApp(
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider( create: (context)=>SavePDfBloc(),),
+      ],
+      child: const  MaterialApp(
 
-      debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+        debugShowCheckedModeBanner: false,
+        home: HomeScreen(),
+      ),
     );
   }
 }

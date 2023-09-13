@@ -3,11 +3,15 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_img_to_pdf_converter/components/loading_dailog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../bloc/pdf_save_bloc/pdf_states.dart';
+import '../bloc/pdf_save_bloc/save_bloc.dart';
 import 'image_preview_screeen.dart';
 
 class ConvertImageToPDFScreen extends StatefulWidget {
@@ -22,226 +26,245 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
   List<File>? images = [];
   final pdf = pw.Document();
   //String fileName="";
-  TextEditingController _nameController=TextEditingController();
-  bool isload=false;
+  // TextEditingController _nameController=TextEditingController();
+  // bool isload=false;
 
 
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    _nameController.dispose();
-  }
+  //
+  // @override
+  // void dispose() {
+  //   // TODO: implement dispose
+  //   super.dispose();
+  //   _nameController.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("Convert Image to PDF"),
-        foregroundColor: Colors.blue,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        actions: [
-          IconButton(
-              onPressed: (){
-             showNameDialog(context);
-            },
+    return BlocConsumer<SavePDfBloc,PDFStates>(
+      builder: (context,state) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text("Convert Image to PDF"),
+            foregroundColor: Colors.blue,
+            backgroundColor: Colors.white,
+            elevation: 1,
+            actions: [
+              IconButton(
+                  onPressed: (){
+                    _showResult();
+                 //showNameDialog(context);
+                },
 
-              icon: const Icon(Icons.picture_as_pdf))
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _pickImage,
-        child: Container(
-          height: 50,
-          width: double.infinity,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              gradient: const LinearGradient(colors: [
-                Color(0xff2876F9),
-                Colors.cyan,
-              ])),
-          child: const Icon(
-            CupertinoIcons.add,
-            size: 30,
+                  icon: const Icon(Icons.picture_as_pdf))
+            ],
           ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(30),
-            height: double.infinity,
-            width: double.infinity,
-            child: Image.asset("assets/addimage.png"),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _pickImage,
+            child: Container(
+              height: 50,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(colors: [
+                    Color(0xff2876F9),
+                    Colors.cyan,
+                  ])),
+              child: const Icon(
+                CupertinoIcons.add,
+                size: 30,
+              ),
+            ),
           ),
-          images == []
-              ? const SizedBox()
-              : GridView.count(
-                  primary: false,
-                  padding: const EdgeInsets.all(20),
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  crossAxisCount: 2,
-                  children: <Widget>[
-                    for (int i = 0; i < images!.length; i++) ...[
-                      Stack(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => ImagePreviewScreen(
-                                        image: images![i],
-                                      )));
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                      color: Colors.blueAccent, width: 2),
-                                  borderRadius: BorderRadius.circular(15),
-                                  image: DecorationImage(
-                                      image: FileImage(images![i]),
-                                      fit: BoxFit.cover)),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              _removeImg(i);
-                            },
-                            child: CircleAvatar(
-                              radius: 16,
-                              backgroundColor: Colors.white.withOpacity(0.6),
-                              child: Icon(
-                                Icons.close,
-                                color: Colors.red,
+          body: Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(30),
+                height: double.infinity,
+                width: double.infinity,
+                child: Image.asset("assets/addimage.png"),
+              ),
+              images == []
+                  ? const SizedBox()
+                  : GridView.count(
+                      primary: false,
+                      padding: const EdgeInsets.all(20),
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      crossAxisCount: 2,
+                      children: <Widget>[
+                        for (int i = 0; i < images!.length; i++) ...[
+                          Stack(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => ImagePreviewScreen(
+                                            image: images![i],
+                                          )));
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                          color: Colors.blueAccent, width: 2),
+                                      borderRadius: BorderRadius.circular(15),
+                                      image: DecorationImage(
+                                          image: FileImage(images![i]),
+                                          fit: BoxFit.cover)),
+                                ),
                               ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ]
-                  ],
-                )
-        ],
-      ),
-    );
-  }
-  void showNameDialog(context) {
-    showDialog<String>(
-      context: context,
-      builder: (BuildContext context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Stack(
-                children: <Widget>[
-                  Container(
-                    padding: const  EdgeInsets.only(left: Constants.padding,top: Constants.avatarRadius
-                        + Constants.padding, right: Constants.padding,bottom: Constants.padding
-                    ),
-                    margin:const  EdgeInsets.only(top: Constants.avatarRadius),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.rectangle,
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(Constants.padding),
-                        boxShadow:const  [
-                          BoxShadow(color: Colors.black,offset: Offset(0,10),
-                              blurRadius: 10
+                              GestureDetector(
+                                onTap: () {
+                                  _removeImg(i);
+                                },
+                                child: CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: Colors.white.withOpacity(0.6),
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
                         ]
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text("Enter Name",style:  TextStyle(fontSize: 22,fontWeight: FontWeight.w600,color:Colors.blue,),),
-                        const   SizedBox(height: 15,),
-                        Container(
-                          height: 45,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          width: double.infinity,
-
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Colors.grey.shade300,
-                                    offset:const  Offset(2,2),
-                                    blurRadius: 2),
-                                BoxShadow(
-                                    color: Colors.grey.shade300,
-                                    offset: const Offset(-2,-2),
-                                    blurRadius: 2)]
-                          ),
-
-
-                          child: TextFormField(
-
-                            controller: _nameController,
-                            maxLines: 1,
-                            decoration:const  InputDecoration(
-                                hintText: "Enter File Name",
-                                border: InputBorder.none
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 22,),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child:GestureDetector(
-                            onTap: (){
-
-                               // fileName=_nameController.text;
-
-
-
-
-                              covertingProcess(_nameController.text);
-
-                            },
-                            child: Container(
-                                height: 40,
-                                width: 150,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    gradient:const  LinearGradient(
-                                        colors:[
-                                          Color(0xff2876F9),
-                                          Colors.cyan,
-
-                                        ]
-                                    )
-                                ),
-                                alignment: Alignment.center,
-                                child:const Text("Save",style:  TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.white),)),
-                          ),
-
-                        )
                       ],
-                    ),
-                  ),
-                  Positioned(
-                    left: Constants.padding,
-                    right: Constants.padding,
-                    child: CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      radius: Constants.avatarRadius,
-                      child: CircleAvatar(
-                        backgroundColor:Colors.blue,
-                        radius: 50,child: Icon( Icons.note_add_outlined,size: 50,color: Colors.white,),
-                      ),
+                    )
+            ],
+          ),
+        );
+      },
+      listener: (BuildContext context, state) {
 
-                    ),
-                  ),
-                ],
-              );
-            }),
-      ),
+    },
     );
   }
+  _showResult()async{
+
+
+
+    showDialog(context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context){
+          return CustomLoadingDialogBox();}
+    );
+
+  }
+  // void showNameDialog(context) {
+  //   showDialog<String>(
+  //     context: context,
+  //     builder: (BuildContext context) => Dialog(
+  //       backgroundColor: Colors.transparent,
+  //       child: StatefulBuilder(
+  //           builder: (BuildContext context, StateSetter setState) {
+  //             return Stack(
+  //               children: <Widget>[
+  //                 Container(
+  //                   padding: const  EdgeInsets.only(left: Constants.padding,top: Constants.avatarRadius
+  //                       + Constants.padding, right: Constants.padding,bottom: Constants.padding
+  //                   ),
+  //                   margin:const  EdgeInsets.only(top: Constants.avatarRadius),
+  //                   decoration: BoxDecoration(
+  //                       shape: BoxShape.rectangle,
+  //                       color: Colors.white,
+  //                       borderRadius: BorderRadius.circular(Constants.padding),
+  //                       boxShadow:const  [
+  //                         BoxShadow(color: Colors.black,offset: Offset(0,10),
+  //                             blurRadius: 10
+  //                         ),
+  //                       ]
+  //                   ),
+  //                   child: Column(
+  //                     mainAxisSize: MainAxisSize.min,
+  //                     children: <Widget>[
+  //                       Text("Enter Name",style:  TextStyle(fontSize: 22,fontWeight: FontWeight.w600,color:Colors.blue,),),
+  //                       const   SizedBox(height: 15,),
+  //                       Container(
+  //                         height: 45,
+  //                         padding: const EdgeInsets.symmetric(horizontal: 10),
+  //                         width: double.infinity,
+  //
+  //                         decoration: BoxDecoration(
+  //                             borderRadius: BorderRadius.circular(10),
+  //                             color: Colors.white,
+  //                             boxShadow: [
+  //                               BoxShadow(
+  //                                   color: Colors.grey.shade300,
+  //                                   offset:const  Offset(2,2),
+  //                                   blurRadius: 2),
+  //                               BoxShadow(
+  //                                   color: Colors.grey.shade300,
+  //                                   offset: const Offset(-2,-2),
+  //                                   blurRadius: 2)]
+  //                         ),
+  //
+  //
+  //                         child: TextFormField(
+  //
+  //                           controller: _nameController,
+  //                           maxLines: 1,
+  //                           decoration:const  InputDecoration(
+  //                               hintText: "Enter File Name",
+  //                               border: InputBorder.none
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       const SizedBox(height: 22,),
+  //                       Align(
+  //                         alignment: Alignment.bottomRight,
+  //                         child:GestureDetector(
+  //                           onTap: (){
+  //
+  //                              // fileName=_nameController.text;
+  //
+  //
+  //
+  //
+  //                             covertingProcess(_nameController.text);
+  //
+  //                           },
+  //                           child: Container(
+  //                               height: 40,
+  //                               width: 150,
+  //                               decoration: BoxDecoration(
+  //                                   borderRadius: BorderRadius.circular(20),
+  //                                   gradient:const  LinearGradient(
+  //                                       colors:[
+  //                                         Color(0xff2876F9),
+  //                                         Colors.cyan,
+  //
+  //                                       ]
+  //                                   )
+  //                               ),
+  //                               alignment: Alignment.center,
+  //                               child:const Text("Save",style:  TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.white),)),
+  //                         ),
+  //
+  //                       )
+  //                     ],
+  //                   ),
+  //                 ),
+  //                 Positioned(
+  //                   left: Constants.padding,
+  //                   right: Constants.padding,
+  //                   child: CircleAvatar(
+  //                     backgroundColor: Colors.transparent,
+  //                     radius: Constants.avatarRadius,
+  //                     child: CircleAvatar(
+  //                       backgroundColor:Colors.blue,
+  //                       radius: 50,child: Icon( Icons.note_add_outlined,size: 50,color: Colors.white,),
+  //                     ),
+  //
+  //                   ),
+  //                 ),
+  //               ],
+  //             );
+  //           }),
+  //     ),
+  //   );
+  // }
 
 
 

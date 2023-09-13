@@ -1,18 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_img_to_pdf_converter/bloc/pdf_save_bloc/pdf_states.dart';
 
+/// SavePDfBloc FOR SAVING THE PDF IN MOBILE INTERNAL STORAGE
+class SavePDfBloc extends Cubit<PDFStates> {
+  SavePDfBloc() : super(InitialPDFStatesState());
 
-class SavePDfBloc extends Cubit<PDFStates>{
-  SavePDfBloc():super(InitialPDFStatesState());
-
-  void enterName(){
+  void enterName() {
     emit(EnterNameState());
   }
-  void processing(String name){
+
+  void processing(String name) {
     emit(ProcessingState(name: name));
   }
-   void savePDF(){
-    emit(PDfSavedState());
-   }
 
+  void savePDF() {
+    emit(PDfSavedState());
+  }
 }

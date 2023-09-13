@@ -5,10 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_img_to_pdf_converter/components/loading_dailog.dart';
+
 import 'package:flutter_img_to_pdf_converter/components/name_dailog.dart';
 import 'package:flutter_img_to_pdf_converter/components/toast.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -26,11 +26,17 @@ class ConvertImageToPDFScreen extends StatefulWidget {
 }
 
 class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
+  /// CREATING THE VARIABLE TO STORE ALL IMAGES
   List<File>? images = [];
+
+  /// CREATING THE INSTANCE FOR PACKAGE PDF
   final pdf = pw.Document();
+
+  /// CREATING THE INSTANCE FOR CLASS TOAST
   final toast = AppToast();
   @override
   Widget build(BuildContext context) {
+    /// USING BLOCCONSUMER FOR HANDLING THE STATE
     return BlocConsumer<SavePDfBloc, PDFStates>(
       builder: (context, state) {
         return Scaffold(
@@ -43,12 +49,15 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
             actions: [
               IconButton(
                   onPressed: () {
-                    context.read<SavePDfBloc>().enterName();
+                    images!.isEmpty
+                        ? toast.showToast("Please Add Images")
+                        : context.read<SavePDfBloc>().enterName();
                   },
                   icon: const Icon(Icons.picture_as_pdf))
             ],
           ),
           floatingActionButton: FloatingActionButton(
+            /// _pickImage THIS IS USED TO COLLECT IMAGE FROM GALLERY
             onPressed: _pickImage,
             child: Container(
               height: 50,
@@ -71,7 +80,9 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
                 padding: const EdgeInsets.all(30),
                 height: double.infinity,
                 width: double.infinity,
-                child: Image.asset("assets/addimage.png"),
+                child: images!.isEmpty
+                    ? Image.asset("assets/addimage.png")
+                    : const SizedBox(),
               ),
               images == []
                   ? const SizedBox()
@@ -87,6 +98,8 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
                             children: [
                               GestureDetector(
                                 onTap: () {
+                                  /// FOR  IMAGE PREVIEW
+
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (context) => ImagePreviewScreen(
                                             image: images![i],
@@ -105,13 +118,14 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
+                                  /// _removeImg THIS METHOD IS USED TO REMOVE THE IMAGE FROM LIST
                                   _removeImg(i);
                                 },
                                 child: CircleAvatar(
                                   radius: 16,
                                   backgroundColor:
                                       Colors.white.withOpacity(0.6),
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.close,
                                     color: Colors.red,
                                   ),
@@ -126,23 +140,38 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
           ),
         );
       },
+
+      /// BLOC LISTENER FOR HANDLING THE DAILOGS
       listener: (context, state) {
         if (state is EnterNameState) {
+          /// TO SHOW THE NAME AND LOADING DAILOG
           _showNameDailog();
         } else if (state is ProcessingState) {
-          // _showLoaderDailog();
+          /// TO CREATE AND SAVE THE PDF FROM IMAGES
           createPDF(state.name);
-          // await savePDF(state.name);
         } else if (state is PDfSavedState) {
-          Navigator.pop(context);
-          toast.showToast("Hello World");
+          /// BACKING THE LOADER DIALOG
 
-          // do Something
+          Navigator.pop(context);
+
+          /// SHOWING TOAST FOR SUCEESS
+          toast.showToast("PDF Saved");
+
+          /// CLEARING THE SCREEN AFTER PDF SAVE
+          _clearScreen();
         }
       },
     );
   }
 
+  /// CLEARING THE SCREEN AFTER PDF SAVE
+  _clearScreen() {
+    setState(() {
+      images!.clear();
+    });
+  }
+
+  /// TO SHOW THE NAME AND LOADING DAILOG
   _showNameDailog() async {
     showDialog(
         context: context,
@@ -152,13 +181,14 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
         });
   }
 
+  /// TO REMOVE THE IMAGE FROM LIST VIA INDEX
   void _removeImg(int index) {
     setState(() {
       images!.removeAt(index);
     });
   }
 
-  ///
+  /// PICKING THE IMAGES FROM GALLARY
   Future _pickImage() async {
     try {
       final List? image = await ImagePicker().pickMultiImage();
@@ -172,9 +202,11 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
     }
   }
 
-  ///
+  /// CREATE THE PDF USING THE PACKAGE PDF
   createPDF(String name) async {
+    /// RUNNING THE LOOP FOR MULTIPLE IMAGES
     for (int i = 0; i < images!.length; i++) {
+      /// THIS LINE HELP US TO CONVERT THEN IMAGE INTO PDF
       final image = pw.MemoryImage(images![i].readAsBytesSync());
       pdf.addPage(pw.Page(build: (pw.Context context) {
         return pw.Center(
@@ -182,62 +214,101 @@ class _ConvertImageToPDFScreenState extends State<ConvertImageToPDFScreen> {
         ); // Center
       }));
     }
+
+    /// CALL THE savePDF TO SAVE THE PDF IN MOBILE STORAGE
     await savePDF(name);
   }
 
+  /// CALL THE savePDF TO SAVE THE PDF IN MOBILE STORAGE
   savePDF(String fileName) async {
+    /// HERE IS THE PLATFORM SPECIFIC CODE
+    /// FOR ANDROID
     try {
       if (Platform.isAndroid) {
-        var path = "/storage/emulated/0/Download";
+        /// THIS IS THE PATH OF THE DIRECTORY FROM WHERE WE ARE GONNA SAVE ALL PDF
+        var path = "/storage/emulated/0/Download/Flutter_imagetoPDF/";
+        // Create the Downloads directory if it doesn't exist
+        if (!await Directory(path).exists()) {
+          await Directory(path).create(recursive: true);
+        }
+
+        /// CREATING THE FILE NAME WITH THE GIVEN NAME
         final file = File("$path/$fileName.pdf");
         debugPrint(file.toString());
-        //await savePdfToFile(pdf, file);
-        await IsolateFunc(pdf,file);
-        //await file.writeAsBytes(await pdf.save());
-      } else {
+
+        /// HERE WE ARE USING THE ISOLATE TO SAVE OUR PDF IN THE MOBILE STORAGE
+        /// AND WE ARE PASING TWO THINGS PDF  AND FILE
+        await IsolateFunc(pdf, file);
+      }
+
+      /// FOR IOS
+      else {
+        /// GETTING THE PATH FROM PACKAGE == PATH_PROVIDER
         final directory = await getApplicationDocumentsDirectory();
-        //  final directory = await getDownloadsDirectory();
+
         final downloadPath = directory.path;
 
-// Create the Downloads directory if it doesn't exist
+        // Create the Downloads directory if it doesn't exist
         if (!await Directory(downloadPath).exists()) {
           await Directory(downloadPath).create(recursive: true);
         }
+
+        /// CREATING THE FILE NAME WITH THE GIVEN NAME
         final file = File("$downloadPath/$fileName.pdf");
         debugPrint(file.toString());
-        await IsolateFunc(pdf,file);
-       // await savePdfToFile(pdf, file);
-        //await file.writeAsBytes(await pdf.save());
+
+        /// HERE WE ARE USING THE ISOLATE TO SAVE OUR PDF IN THE MOBILE STORAGE
+        /// AND WE ARE PASING TWO THINGS PDF  AND FILE
+        await IsolateFunc(pdf, file);
       }
+
+      /// CALLING THE savePDF FROM SavePDfBloc TO EMIT THE STATE
       context.read<SavePDfBloc>().savePDF();
     } catch (e) {
+      /// PRINTING THE ERROR
       debugPrint("error while saving the pfd == $e");
     }
   }
-
-
 }
 
-IsolateFunc(pdf,file)async{
-  final ReceivePort receivePort=ReceivePort();
-  try{
-    await Isolate.spawn(savePdfToFile,[receivePort.sendPort,pdf, file] );
-  }on Object{
+/// THIS IS THE IsolateFunc TO HANDLE EXTRA WORK
+/// THIS HELP US TO PREVENT THE SCREEN FREEZED
+/// BECAUSE THE SAVE FILE IS TIME CONSUMING PROCESS
+/// NOTE : ALWAYS CREATE THE ISOLATE OUTSIDE OF THE CLASS
+/// MAKE IS SEPERATE
+IsolateFunc(pdf, file) async {
+  /// CREATING THE ReceivePort TO RECEVING THE SIGNAL FOR SENDER PORT
+  final ReceivePort receivePort = ReceivePort();
+
+  /// USING TRY CATCH
+  try {
+    /// TO USE ISOLATE import 'dart:isolate'; THIS LINE
+    /// spawn METHOD IS USED TO CALL THE DIFFENT FUNCTIONS OR METHODS TO PERFROM OPERATION
+    /// ON ANOTHER THREAD
+    /// WE ARE ALSO PASSING OBJECT IN A LIST
+    await Isolate.spawn(savePdfToFile, [receivePort.sendPort, pdf, file]);
+  } on Object {
+    /// EXCEPTION HANDLING
     debugPrint("Save File Isolate Failed");
+
+    /// CLOSING THE receivePort
     receivePort.close();
   }
-final res = await receivePort.first;
+
+  /// WAIT FOR THE FUCTION TO EXCECUTE
+  final res = await receivePort.first;
   debugPrint("value back from Isolate === $res");
 }
 
+/// SAVING THE PDF
 
-
-savePdfToFile(List<dynamic> parameter) async{
-  SendPort  sendPort= parameter[0];
+savePdfToFile(List<dynamic> parameter) async {
+  /// CREATING THE SendPort  AND ASSIGNING THE RECEVERPORT TO IT
+  SendPort sendPort = parameter[0];
   final pdfBytes = await parameter[1].save();
   await parameter[2].writeAsBytes(pdfBytes);
-  Isolate.exit(sendPort,true);
 
+  ///AFTER THE EXECUTION OF THE ALL THE FUNCTION
+  /// WE ARE EXITING THE ISOLATE
+  Isolate.exit(sendPort, true);
 }
-
-

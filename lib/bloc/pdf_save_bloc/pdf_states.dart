@@ -1,15 +1,14 @@
-abstract class PDFStates{}
+/// ALL STATE TO SAVE PDF
 
-class InitialPDFStatesState extends PDFStates{}
+abstract class PDFStates {}
 
-class EnterNameState extends PDFStates{}
+class InitialPDFStatesState extends PDFStates {}
 
-class ProcessingState extends PDFStates{
-final   String name;
-ProcessingState({required this.name});
+class EnterNameState extends PDFStates {}
 
+class ProcessingState extends PDFStates {
+  final String name;
+  ProcessingState({required this.name});
 }
 
-class PDfSavedState extends PDFStates{}
-
-
+class PDfSavedState extends PDFStates {}

@@ -12,14 +12,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// MultiBlocProvider FOR STATE MANGEMNET
     return MultiBlocProvider(
       providers: [
+        /// PASSING THE BLOC TO ENTIRE APP
         BlocProvider(
           create: (context) => SavePDfBloc(),
         ),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
+
+        /// HOMESCREEN
         home: HomeScreen(),
       ),
     );

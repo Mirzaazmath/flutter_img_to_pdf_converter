@@ -28,12 +28,18 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-
+ # FOR CONVERTING THE IMAGE TO PDF
   pdf: ^3.10.4
+  # FOR PICKING THE IMAGES FROM MOBILE
   image_picker: ^1.0.4
+  # FOR GETTING THE PATH TO STORE AND RETIVE THE PDF
   path_provider: ^2.1.1
+  # FOR TOAST
   fluttertoast: ^8.2.2
+  # FOR STATE MANAGEMENT
   flutter_bloc: ^8.1.3
+  # FOR OPENING THE PDF IN PDF VIEW OF SYSTEM
+  url_launcher: ^6.1.14
   flutter:
 
     sdk: flutter

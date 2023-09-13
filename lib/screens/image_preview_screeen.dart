@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class ImagePreviewScreen extends StatelessWidget {
+  /// GETTING THE FILE TO SHOW THE IMAGE
   File image;
   ImagePreviewScreen({super.key, required this.image});
 
@@ -15,7 +16,7 @@ class ImagePreviewScreen extends StatelessWidget {
         elevation: 0,
         foregroundColor: Colors.blue,
       ),
-      body: Container(
+      body: SizedBox(
         height: double.infinity,
         width: double.infinity,
         child: Image.file(

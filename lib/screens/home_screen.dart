@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_img_to_pdf_converter/screens/recent_pdfs_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -18,7 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String downloadPath = "";
 
   /// CREATING THE file VARIABLE TO STORE ALL FILE PRESENT IN THE DIRECTORY
-  List file = [];
+  List files = [];
 
   @override
   void initState() {
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         /// SETTING ALL FILE FROM THE DIRECTORY IN A  LIST  VARIABLE
         setState(() {
-          file = io.Directory(downloadPath).listSync();
+          files = io.Directory(downloadPath).listSync();
           //use your folder name insted of resume.
         });
       }
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         /// SETTING ALL FILE FROM THE DIRECTORY IN A  LIST  VARIABLE
         setState(() {
-          file = io.Directory(downloadPath).listSync();
+          files = io.Directory(downloadPath).listSync();
           //use your folder name insted of resume.
         });
       }
@@ -148,12 +149,22 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// TITLE
-            const Text(
-              "Recent PDFs",
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Recent PDFs",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24),
+                ),
+                GestureDetector(
+                  onTap: (){
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=>RecentPdfSCreen()));
+                  },
+                    child: Text("See All",style: TextStyle(color: Colors.blue.shade700,fontWeight: FontWeight.bold),))
+              ],
             ),
             const SizedBox(
               height: 20,
@@ -161,8 +172,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             /// LIST OF FILES IN THE DIRECTORY
             Expanded(
-              child: ListView.builder(
-                  itemCount: file.length,
+              child: files.isEmpty?const  SizedBox(): ListView.builder(
+                  itemCount:1 ,
                   itemBuilder: (BuildContext context, int index) {
                     return GestureDetector(
                       onTap: () {
@@ -181,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 20,
                             ),
                             Text(
-                              file[index]
+                              files[0]
                                   .toString()
                                   .split("/")
                                   .last

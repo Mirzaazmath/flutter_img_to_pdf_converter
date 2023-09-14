@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_img_to_pdf_converter/bloc/pdf_save_bloc/pdf_states.dart';
 import 'package:flutter_img_to_pdf_converter/bloc/pdf_save_bloc/save_bloc.dart';
+import 'package:flutter_img_to_pdf_converter/components/toast.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 // CUSTOM DAILOG CLASS
 class CustomNameDialogBox extends StatefulWidget {
@@ -16,6 +18,7 @@ class CustomNameDialogBox extends StatefulWidget {
 
 class _CustomDialogBoxState extends State<CustomNameDialogBox> {
   TextEditingController _nameController = TextEditingController();
+  final toast = AppToast();
 
   @override
   void dispose() {
@@ -109,9 +112,16 @@ class _CustomDialogBoxState extends State<CustomNameDialogBox> {
                       alignment: Alignment.bottomRight,
                       child: GestureDetector(
                         onTap: () {
-                          context
-                              .read<SavePDfBloc>()
-                              .processing(_nameController.text);
+                          if(_nameController.text==""){
+                            toast.showToast("Please Enter File Name");
+
+
+                          }else{
+                            context
+                                .read<SavePDfBloc>()
+                                .processing(_nameController.text);
+                          }
+
                         },
                         child: Container(
                             height: 40,

@@ -89,7 +89,7 @@ class _RecentPdfSCreenState extends State<RecentPdfSCreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: ListView.builder(
+        child:files.isEmpty?const Center(child: Text("No PDF Found",style: TextStyle(color: Colors.grey,fontWeight: FontWeight.bold,fontSize: 33),)): ListView.builder(
             itemCount:files.length,
             itemBuilder: (BuildContext context, int index) {
               return GestureDetector(

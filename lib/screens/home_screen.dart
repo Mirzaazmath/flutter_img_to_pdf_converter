@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 24),
+                      fontSize: 22),
                 ),
                 GestureDetector(
                   onTap: (){
